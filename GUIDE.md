@@ -11,6 +11,8 @@ finished, captioned ad plus 3-5 hook variations.
 - Click the **Code** tab. Above the message box, set **Environment** to **Local**
   (not Cloud), and pick your **Desktop** as the folder.
 
+![Set these before your first message](docs/images/code-tab.png)
+
 ## 2. Give Claude the editor
 Copy this, paste it into Claude and press Enter:
 
@@ -26,6 +28,8 @@ Click **Allow** whenever Claude asks. If a Mac pop-up asks to install developer
 tools, click **Install**. Claude may ask for your Mac password once to install its
 tools: type it (nothing shows as you type) and press Enter. Done when you see
 **READY**. You only do this once.
+
+![What READY looks like](docs/images/ready.png)
 
 ## 3. Your UGC Jobs folder
 
