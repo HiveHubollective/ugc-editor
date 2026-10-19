@@ -1,0 +1,20 @@
+{
+  "name": "Hive Hub house style",
+  "caption": {
+    "family": "Fredoka", "bold": true, "size": 100,
+    "colour": "#FF6E00", "outline_colour": "#FFFFFF", "outline": 4, "shadow": 1,
+    "y": 0.74, "pop": true, "strip_punctuation": false
+  },
+  "hook": {
+    "font_file": "fonts/Rubik-Black.ttf", "size": 104, "case": "upper",
+    "text_colour": "#FF6E00", "box_colour": "#FFFFFF", "radius": 30,
+    "pad_x": 40, "pad_y": 26, "y": 220
+  },
+  "motion": {
+    "zoom_tight": 1.14, "push": 0.04, "punch": 0.12,
+    "open_zoom": 1.22, "open_dur": 0.45,
+    "reframe_gap": 0.25, "broll_push": 0.08, "whip_dur": 0.2
+  },
+  "pacing": {"max_gap": 0.12, "pad_start": 0.04, "pad_end": 0.06},
+  "audio": {"lufs": -14}
+}

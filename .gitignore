@@ -1,0 +1,8 @@
+raw/
+out/
+work/
+*.mov
+*.MOV
+*.mp4
+__pycache__/
+.DS_Store
