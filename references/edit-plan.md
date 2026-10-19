@@ -68,5 +68,9 @@ starts on, optional `"offset"` in seconds), `transition` `"whip"` or `"cut"`.
 `[left, top, right, bottom]` fractions of the photo to show only the product. Always crop
 phone photos to the product: a full portrait photo is too tall for a card.
 
+**music** optional `{"file": "track.mp3", "volume": 0.2}`: a track from `4 Music/`, looped
+or trimmed to length, faded in and out, and ducked under the voice. 0.15-0.25 is a good
+background level.
+
 **variants** each one replaces the first `replace_first` segments with its own
 `segments` and gets its own `hook.text`. Everything after stays the same.

@@ -66,8 +66,11 @@ hook text. The body after the hook stays the same. Name the files by the angle:
 
 ## Sound
 - Voice evened out and normalised to -14 LUFS. B-roll audio always muted.
-- No sound effects or music unless the creator asks: trending audio gets added in
-  the posting app.
+- No sound effects. Music only when the creator drops a track in `4 Music/` or asks:
+  set `"music"` in the plan, it sits quietly under the voice and dips when they speak.
+- Never use a popular or trending song in an ad for a brand: the brand needs music it's
+  licensed to run as an ad. Free option: Pixabay Music (commercial use, no credit
+  needed, check each track). Many brands prefer no music so they can add their own.
 
 ## Rules (learned from creators, add new ones here)
 - Cut every dead space, not just the long ones.

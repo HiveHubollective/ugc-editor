@@ -26,6 +26,7 @@ All jobs live in `~/Desktop/UGC Jobs/`, one folder per brand. If the creator say
   1 Talking clips/     every talking-to-camera clip, any order, all the takes
   2 B-roll/            B-roll clips
   3 Product photos/    product photos / screenshots to pop up on screen (optional)
+  4 Music/             a licence-free music track, if they want music (optional)
   Finished videos/     where the finished edits appear
 ```
 The brief can be dropped anywhere in the brand folder (PDF, screenshots, a doc) or

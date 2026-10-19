@@ -43,6 +43,7 @@ inside **UGC Jobs** on your Desktop:
 | **1 Talking clips** | every talking-to-camera clip, all the takes, mistakes and all |
 | **2 B-roll** | your B-roll clips |
 | **3 Product photos** | product photos for pop-ups (optional) |
+| **4 Music** | a licence-free track, if you want music (optional) |
 | **Finished videos** | your finished edits appear here |
 
 AirDrop your clips from your phone and drag them into the right folder. Drop the

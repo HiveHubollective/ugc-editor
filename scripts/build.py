@@ -34,6 +34,7 @@ SKILL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Job folder layout (plain-English names; the old raw/... names still work)
 FOLDERS = {'talking': ['1 Talking clips', 'raw/talking'], 'broll': ['2 B-roll', 'raw/broll'],
            'images': ['3 Product photos', 'raw/images'], 'out': ['Finished videos', 'out'],
+           'music': ['4 Music', 'raw/music'],
            'work': ['.work', 'work']}
 
 
@@ -561,6 +562,20 @@ def main():
          f"loudnorm=I={style['audio']['lufs']}:TP=-1.5:LRA=11:measured_I={m['input_i']}:measured_TP={m['input_tp']}:"
          f"measured_LRA={m['input_lra']}:measured_thresh={m['input_thresh']}:offset={m['target_offset']}:linear=true",
          '-ar', '48000', audio])
+
+    # optional music bed: quiet, faded, and dipping under the voice whenever it speaks
+    mus = plan.get('music')
+    if mus and mus.get('file'):
+        mixed = os.path.join(tmp, 'mixed.wav')
+        vol = mus.get('volume', 0.2)
+        run(['ffmpeg', '-y', '-loglevel', 'error', '-i', audio, '-stream_loop', '-1', '-i', jpath(job, 'music', mus['file']),
+             '-filter_complex',
+             f"[0:a]asplit[v1][v2];[1:a]aresample=48000,aformat=channel_layouts=stereo,volume={vol},"
+             f"atrim=0:{total:.3f},afade=t=in:d=0.6,afade=t=out:st={max(0, total - 1.5):.3f}:d=1.5[m];"
+             f"[m][v2]sidechaincompress=threshold=0.02:ratio=6:attack=15:release=350[md];"
+             f"[v1][md]amix=inputs=2:normalize=0,alimiter=limit=0.89[o]",
+             '-map', '[o]', '-t', f"{total:.3f}", '-ar', '48000', mixed])
+        audio = mixed
 
     # 3. video, frame by frame
     capf = os.path.join(tmp, 'cap.ass')
