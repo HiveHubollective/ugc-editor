@@ -11,7 +11,6 @@ fixes what it finds before you see it.
 
 **Setup and how to use it: [GUIDE.md](GUIDE.md)**
 
-Made by Hive Hub Collective.
 
 ## What's inside
 
@@ -27,3 +26,7 @@ scripts/build.py              renders the edit and every hook variation
 scripts/qa.py                 re-listens and looks at the finished video, learns missed cuts
 fonts/                        Fredoka and Rubik (SIL Open Font Licence)
 ```
+
+## Licence
+
+MIT (see LICENSE). Fonts: SIL Open Font Licence.

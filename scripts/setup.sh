@@ -18,6 +18,11 @@ echo "UGC editor setup"
 
 OS="$(uname)"
 if [ "$OS" = "Darwin" ]; then
+  # Homebrew lives in /opt/homebrew on Apple Silicon and /usr/local on Intel Macs,
+  # and isn't on the PATH of a fresh shell straight after it's installed.
+  for b in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+    [ -x "$b" ] && eval "$("$b" shellenv)" && break
+  done
   if ! command -v brew >/dev/null; then
     echo "  Homebrew isn't installed. Install it first (it asks for your Mac password):"
     echo '  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'

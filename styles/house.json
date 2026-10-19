@@ -1,5 +1,5 @@
 {
-  "name": "Hive Hub house style",
+  "name": "Default house style",
   "caption": {
     "family": "Fredoka", "bold": true, "size": 100,
     "colour": "#FF6E00", "outline_colour": "#FFFFFF", "outline": 4, "shadow": 1,
