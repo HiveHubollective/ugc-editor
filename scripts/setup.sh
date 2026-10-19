@@ -67,7 +67,8 @@ FREE_GB=$(df -Pk "$HOME" | awk 'NR==2{print int($4/1048576)}')
 [ "$FREE_GB" -ge 10 ] && ok "${FREE_GB} GB free disk" || no "only ${FREE_GB} GB free" "free up at least 10 GB"
 
 if [ "$FAIL" = 0 ]; then
-  echo "READY: say \"start a new UGC job\" to Claude."
+  mkdir -p "$HOME/Desktop/UGC Jobs" 2>/dev/null
+  echo "READY: say \"start a new UGC job for [brand]\" to Claude."
   echo "Python for the scripts: $VENV/bin/python"
 else
   echo "NOT READY: fix the ❌ items above, then run this again."; exit 1

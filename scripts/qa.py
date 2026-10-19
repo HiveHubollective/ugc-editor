@@ -7,7 +7,7 @@ Usage:
 --learn  turns every leftover pause / um it hears into a cut in the raw
          footage (work/auto_skips.json); build again to apply it.
 
-Needs the <video>.timeline.json that build.py writes next to the video.
+Needs the timeline build.py writes in the job's .work folder.
   ears   re-transcribes the finished video and compares it with the words the
          plan asked for: clipped or missing words, leftover ums / repeats, and
          any pause still longer than 0.35 s
@@ -16,10 +16,25 @@ Needs the <video>.timeline.json that build.py writes next to the video.
   levels integrated loudness (target -14 LUFS) and true peak
 Prints PASS or a list of things to fix.
 """
-import json, re, subprocess, sys
+import json, os, re, subprocess, sys
 from difflib import SequenceMatcher
 import numpy as np
 from PIL import Image, ImageDraw
+
+
+# Job folder layout (plain-English names; the old raw/... names still work)
+FOLDERS = {'talking': ['1 Talking clips', 'raw/talking'], 'broll': ['2 B-roll', 'raw/broll'],
+           'images': ['3 Product photos', 'raw/images'], 'out': ['Finished videos', 'out'],
+           'work': ['.work', 'work']}
+
+
+def jpath(job, kind, *rest):
+    """Path to one of the job's folders, preferring the plain-English name."""
+    for name in FOLDERS[kind]:
+        p = os.path.join(job, name)
+        if os.path.isdir(p):
+            return os.path.join(p, *rest)
+    return os.path.join(job, FOLDERS[kind][0], *rest)
 
 
 def norm(t):
@@ -28,7 +43,9 @@ def norm(t):
 
 def main():
     video = sys.argv[1]
-    tl = json.load(open(video.replace('.mp4', '.timeline.json')))
+    job = os.path.dirname(os.path.dirname(os.path.abspath(video)))
+    base = os.path.basename(video).replace('.mp4', '')
+    tl = json.load(open(jpath(job, 'work', base + '.timeline.json')))
     problems = []
 
     # ears
@@ -81,9 +98,7 @@ def main():
                     learned.append({'clip': p['clip'], 'a': round(p['a'] + x0 - o0, 3),
                                     'b': round(p['a'] + x1 - o0, 3)})
     if '--learn' in sys.argv and learned:
-        import os
-        job = os.path.dirname(os.path.dirname(os.path.abspath(video)))
-        f = os.path.join(job, 'work', 'auto_skips.json')
+        f = jpath(job, 'work', 'auto_skips.json')
         old = json.load(open(f)) if os.path.exists(f) else []
         json.dump(old + learned, open(f, 'w'), indent=1)
         print(f"learned {len(learned)} cut(s) -> {f}; build again to apply")
@@ -115,7 +130,7 @@ def main():
         sh = Image.new('RGB', (270 * len(row), 480))
         for i, im in enumerate(row):
             sh.paste(im, (i * 270, 0))
-        p = video.replace('.mp4', f'.sheet-{k // 8 + 1}.jpg')
+        p = jpath(job, 'work', f'{base}.sheet-{k // 8 + 1}.jpg')
         sh.save(p, quality=85)
         sheets.append(p)
 

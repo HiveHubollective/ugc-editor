@@ -4,9 +4,9 @@
 Usage:
     python3 transcribe.py <job_dir> [--model small.en]
 
-Reads every video in <job_dir>/raw/talking/, writes:
-    <job_dir>/work/words/<clip>.json   word list [[word, start, end], ...]
-    <job_dir>/work/lines.md            numbered lines to choose from, with
+Reads every video in <job>/1 Talking clips/, writes (in the hidden .work folder):
+    .work/words/<clip>.json   word list [[word, start, end], ...]
+    .work/lines.md            numbered lines to choose from, with
                                        repeated takes grouped and stumbles flagged
 
 Line ids look like A07 = clip A, line 7. The edit plan (edit.json) picks lines by id.
@@ -14,6 +14,21 @@ Line ids look like A07 = clip A, line 7. The edit plan (edit.json) picks lines b
 import argparse, json, os, re, subprocess, sys
 from difflib import SequenceMatcher
 import numpy as np
+
+# Job folder layout (plain-English names; the old raw/... names still work)
+FOLDERS = {'talking': ['1 Talking clips', 'raw/talking'], 'broll': ['2 B-roll', 'raw/broll'],
+           'images': ['3 Product photos', 'raw/images'], 'out': ['Finished videos', 'out'],
+           'work': ['.work', 'work']}
+
+
+def jpath(job, kind, *rest):
+    """Path to one of the job's folders, preferring the plain-English name."""
+    for name in FOLDERS[kind]:
+        p = os.path.join(job, name)
+        if os.path.isdir(p):
+            return os.path.join(p, *rest)
+    return os.path.join(job, FOLDERS[kind][0], *rest)
+
 
 VIDEO = ('.mov', '.mp4', '.m4v', '.mkv', '.avi', '.webm')
 
@@ -51,11 +66,11 @@ def main():
     ap.add_argument('--model', default='small.en')
     args = ap.parse_args()
     from faster_whisper import WhisperModel
-    talk = os.path.join(args.job, 'raw', 'talking')
+    talk = jpath(args.job, 'talking')
     clips = sorted(f for f in os.listdir(talk) if f.lower().endswith(VIDEO))
     if not clips:
         sys.exit(f"no videos in {talk}")
-    os.makedirs(os.path.join(args.job, 'work', 'words'), exist_ok=True)
+    os.makedirs(jpath(args.job, 'work', 'words'), exist_ok=True)
     model = WhisperModel(args.model, device='cpu', compute_type='int8')
     letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     clipmap, all_lines = {}, []
@@ -77,7 +92,7 @@ def main():
                 s, e = tighten_word(t, w.start, w.end, r, thr)
                 words.append([t, round(s, 2), round(e, 2)])
         json.dump({'clip': clip, 'key': key, 'words': words},
-                  open(os.path.join(args.job, 'work', 'words', f'{key}.json'), 'w'))
+                  open(jpath(args.job, 'work', 'words', f'{key}.json'), 'w'))
         # split into lines at sentence ends or pauses
         line, n = [], 0
         for i, w in enumerate(words):
@@ -120,9 +135,9 @@ def main():
             flag = ' ⚠'
         tag = f"  [TAKE {g} {takes[g].index(L['id']) + 1}/{n_takes}]" if n_takes > 1 else ''
         out.append(f"{L['id']}  {L['start']:7.2f}-{L['end']:7.2f}  {L['text']}{tag}{flag}")
-    open(os.path.join(args.job, 'work', 'lines.md'), 'w').write('\n'.join(out) + '\n')
-    json.dump(all_lines, open(os.path.join(args.job, 'work', 'lines.json'), 'w'))
-    print(f"wrote {os.path.join(args.job, 'work', 'lines.md')}")
+    open(jpath(args.job, 'work', 'lines.md'), 'w').write('\n'.join(out) + '\n')
+    json.dump(all_lines, open(jpath(args.job, 'work', 'lines.json'), 'w'))
+    print(f"wrote {jpath(args.job, 'work', 'lines.md')}")
 
 
 if __name__ == '__main__':

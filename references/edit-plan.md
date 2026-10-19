@@ -1,6 +1,6 @@
 # edit.json format
 
-One file per job, at `<job>/edit.json`. `build.py` reads it.
+One file per job, at `<job>/.work/edit.json`. `build.py` reads it.
 
 ```json
 {
@@ -24,7 +24,7 @@ One file per job, at `<job>/edit.json`. `build.py` reads it.
   ],
 
   "cards": [
-    {"image": "raw/images/range.jpg", "w": 0.62, "at": {"seg": 6, "word": "three"}, "dur": 4.2, "x": 0.5, "y": 0.17},
+    {"image": "3 Product photos/range.jpg", "w": 0.62, "at": {"seg": 6, "word": "three"}, "dur": 4.2, "x": 0.5, "y": 0.17},
     {"title": "Key ingredients", "rows": ["Vitamin C", "Niacinamide", "Hyaluronic acid"], "at": {"seg": 4, "word": "vitamin"}, "dur": 2.6, "y": 0.16}
   ],
 
@@ -37,7 +37,7 @@ One file per job, at `<job>/edit.json`. `build.py` reads it.
 
 ## Fields
 
-**name** file name for the outputs (`out/<name>.mp4`, `out/<name>_<variant>.mp4`).
+**name** file name for the outputs (`Finished videos/<name>.mp4`, `Finished videos/<name>_<variant>.mp4`).
 
 **style** a file in `styles/` (default `house`). **style_overrides** changes any part of
 it for this brand, e.g. caption colour to the brand colour, if it reads well on video.
@@ -59,7 +59,7 @@ segment (or set `"dur"` in seconds).
   (a stray um qa.py keeps finding).
 - `beat` hook / problem / solution / proof / cta (for your own reading).
 
-**broll** each one: `clip` (file name in raw/broll), `in` (start second inside the
+**broll** each one: `clip` (file name in `2 B-roll/`), `in` (start second inside the
 clip, from look.py), `dur` (1.5-3 s), `at` (`{"seg": n, "word": "..."}` the word it
 starts on, optional `"offset"` in seconds), `transition` `"whip"` or `"cut"`.
 

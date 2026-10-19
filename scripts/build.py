@@ -31,6 +31,21 @@ W, H = 1080, 1920
 SKILL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+# Job folder layout (plain-English names; the old raw/... names still work)
+FOLDERS = {'talking': ['1 Talking clips', 'raw/talking'], 'broll': ['2 B-roll', 'raw/broll'],
+           'images': ['3 Product photos', 'raw/images'], 'out': ['Finished videos', 'out'],
+           'work': ['.work', 'work']}
+
+
+def jpath(job, kind, *rest):
+    """Path to one of the job's folders, preferring the plain-English name."""
+    for name in FOLDERS[kind]:
+        p = os.path.join(job, name)
+        if os.path.isdir(p):
+            return os.path.join(p, *rest)
+    return os.path.join(job, FOLDERS[kind][0], *rest)
+
+
 def run(cmd, **kw):
     r = subprocess.run(cmd, capture_output=True, text=True, **kw)
     if r.returncode:
@@ -365,14 +380,17 @@ def write_captions(words, st, path):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('job')
-    ap.add_argument('--plan', default='edit.json')
+    ap.add_argument('--plan', default=None, help='default: .work/edit.json')
     ap.add_argument('--variant')
     ap.add_argument('--preview', action='store_true', help='fast low-quality render')
     ap.add_argument('--clean', action='store_true',
                     help='no captions, hook text or cards: the same cut, ready to finish in CapCut')
     args = ap.parse_args()
     job = os.path.abspath(args.job)
-    plan = json.load(open(os.path.join(job, args.plan)))
+    plan_path = (os.path.join(job, args.plan) if args.plan else
+                 next((p for p in (jpath(job, 'work', 'edit.json'), os.path.join(job, 'edit.json'))
+                       if os.path.exists(p)), jpath(job, 'work', 'edit.json')))
+    plan = json.load(open(plan_path))
     style = json.load(open(os.path.join(SKILL, 'styles', plan.get('style', 'house') + '.json')))
     style = deep_merge(style, plan.get('style_overrides', {}))
     pacing, motion = style['pacing'], style['motion']
@@ -393,13 +411,13 @@ def main():
         name = f"{name}_clean"
 
     words = {}
-    for f in os.listdir(os.path.join(job, 'work', 'words')):
-        d = json.load(open(os.path.join(job, 'work', 'words', f)))
+    for f in os.listdir(jpath(job, 'work', 'words')):
+        d = json.load(open(jpath(job, 'work', 'words', f)))
         words[d['key']] = d
-    src = lambda k: os.path.join(job, 'raw', 'talking', words[k]['clip'])
-    lines = {L['id']: L for L in json.load(open(os.path.join(job, 'work', 'lines.json')))}
+    src = lambda k: jpath(job, 'talking', words[k]['clip'])
+    lines = {L['id']: L for L in json.load(open(jpath(job, 'work', 'lines.json')))}
     fixes = {k.lower(): v for k, v in plan.get('caption_fixes', {}).items()}
-    skp = os.path.join(job, 'work', 'auto_skips.json')
+    skp = jpath(job, 'work', 'auto_skips.json')
     auto_skips = json.load(open(skp)) if os.path.exists(skp) else []
 
     def near_of(sg):
@@ -504,7 +522,7 @@ def main():
     for b in plan.get('broll', []):
         t0 = at_time(b['at'])
         broll.append({**b, 't0': t0, 't1': min(total, t0 + b['dur']),
-                      'path': os.path.join(job, 'raw', 'broll', b['clip'])})
+                      'path': jpath(job, 'broll', b['clip'])})
     cards = []
     for c in plan.get('cards', []):
         t0 = at_time(c['at'])
@@ -547,7 +565,7 @@ def main():
     # 3. video, frame by frame
     capf = os.path.join(tmp, 'cap.ass')
     write_captions([] if args.clean else cap_words, style['caption'], capf)
-    out_dir = os.path.join(job, 'out')
+    out_dir = jpath(job, 'work') if args.preview else jpath(job, 'out')   # drafts stay hidden
     os.makedirs(out_dir, exist_ok=True)
     out = os.path.join(out_dir, f"{name}{'_preview' if args.preview else ''}.mp4")
     fontsdir = os.path.join(SKILL, 'fonts')
@@ -598,7 +616,7 @@ def main():
     json.dump({'segments': [{'say': s['say'], 'start': s['_start'], 'end': s['_end']} for s in segs],
                'words': cap_words, 'total': total, 'cuts': len(parts), 'shots': len(shots),
                'parts': [{k: p[k] for k in ('clip', 'a', 'b', 'at', 'seg')} for p in parts]},
-              open(out.replace('.mp4', '.timeline.json'), 'w'))
+              open(jpath(job, 'work', os.path.basename(out).replace('.mp4', '.timeline.json')), 'w'))
     print(f"done: {out}  ({total:.1f}s, {len(parts)} cuts, {len(shots)} shots)")
 
 

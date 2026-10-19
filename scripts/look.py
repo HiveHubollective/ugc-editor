@@ -4,7 +4,7 @@
 Usage:
     python3 look.py <job_dir>
 
-Writes <job_dir>/work/look/<name>.jpg: one sheet per B-roll clip (a frame
+Writes <job>/.work/look/<name>.jpg: one sheet per B-roll clip (a frame
 every 0.5 s, each stamped with its time) and one sheet of all product images.
 Open each sheet and note what happens when: where the pour/sip/reaction is,
 where the creator looks at the camera or fumbles (avoid those), what is
@@ -13,6 +13,21 @@ blurry or shaky. B-roll "in" times in edit.json come from these stamps.
 import os, subprocess, sys
 import numpy as np
 from PIL import Image, ImageDraw
+
+# Job folder layout (plain-English names; the old raw/... names still work)
+FOLDERS = {'talking': ['1 Talking clips', 'raw/talking'], 'broll': ['2 B-roll', 'raw/broll'],
+           'images': ['3 Product photos', 'raw/images'], 'out': ['Finished videos', 'out'],
+           'work': ['.work', 'work']}
+
+
+def jpath(job, kind, *rest):
+    """Path to one of the job's folders, preferring the plain-English name."""
+    for name in FOLDERS[kind]:
+        p = os.path.join(job, name)
+        if os.path.isdir(p):
+            return os.path.join(p, *rest)
+    return os.path.join(job, FOLDERS[kind][0], *rest)
+
 
 VIDEO = ('.mov', '.mp4', '.m4v', '.mkv', '.avi', '.webm')
 IMAGE = ('.jpg', '.jpeg', '.png', '.webp', '.heic')
@@ -26,10 +41,10 @@ def duration(p):
 
 def main():
     job = sys.argv[1]
-    out = os.path.join(job, 'work', 'look')
+    out = jpath(job, 'work', 'look')
     os.makedirs(out, exist_ok=True)
     tw, th = 180, 320
-    bdir = os.path.join(job, 'raw', 'broll')
+    bdir = jpath(job, 'broll')
     for f in sorted(os.listdir(bdir)) if os.path.isdir(bdir) else []:
         if not f.lower().endswith(VIDEO):
             continue
@@ -51,7 +66,7 @@ def main():
         sp = os.path.join(out, f"{os.path.splitext(f)[0]}.jpg")
         sheet.save(sp, quality=82)
         print(f"{f}: {d:.1f}s -> {sp}")
-    idir = os.path.join(job, 'raw', 'images')
+    idir = jpath(job, 'images')
     imgs = [f for f in sorted(os.listdir(idir)) if f.lower().endswith(IMAGE)] if os.path.isdir(idir) else []
     if imgs:
         try:

@@ -18,34 +18,38 @@ Run `bash S/setup.sh`. It installs what's missing and ends with READY or NOT REA
 Don't edit until it says READY.
 
 ## 1. The job folder
-Each job is one folder (default `~/UGC Jobs/<brand-name>/`). If the creator says
-"start a new UGC job", make it with this layout and open it in Finder (`open <folder>`):
+All jobs live in `~/Desktop/UGC Jobs/`, one folder per brand. If the creator says
+"start a new UGC job for <brand>", make this and open it in Finder (`open "<folder>"`):
 
 ```
-<job>/
-  brief.md            the brand brief (paste text, or drop the PDF / screenshots next to it)
-  raw/talking/        every talking-to-camera clip, any order, all the takes
-  raw/broll/          B-roll clips
-  raw/images/         product photos / screenshots to pop up on screen (optional)
-  script.md           the script, if there was one (optional - most UGC is natural)
+~/Desktop/UGC Jobs/<Brand>/
+  1 Talking clips/     every talking-to-camera clip, any order, all the takes
+  2 B-roll/            B-roll clips
+  3 Product photos/    product photos / screenshots to pop up on screen (optional)
+  Finished videos/     where the finished edits appear
 ```
-Ask them to drop files in and tell you when it's done. Then read everything in
-the folder: the brief (Read PDFs and screenshots too), the script, and the brand
-website (WebFetch it) for product facts, claims, spelling and colours. Note:
+The brief can be dropped anywhere in the brand folder (PDF, screenshots, a doc) or
+pasted into the chat. Your own working files (transcripts, plan, drafts, checks) go
+in the hidden `.work/` folder so the creator only ever sees their clips and videos.
+
+Tell them to drop their files in and say when it's done. Then read everything: the
+brief (Read PDFs and screenshots too), any script, and the brand website (WebFetch
+it) for product facts, claims, spelling and colours. Ask for the website if they
+haven't given it. Note:
 - who the ad is for, the product, the angle the brief asks for
 - **what NOT to say** (claims, words, competitor names) and anything regulated
 - the CTA, length, number of hooks, and any must-say lines
 If the brief has no CTA or length, use the defaults in `references/editing-playbook.md`.
 
 ## 2. Ears and eyes
-1. `PY S/transcribe.py <job>` → `work/lines.md`: every line, numbered, with repeated
+1. `PY S/transcribe.py <job>` → `.work/lines.md`: every line, numbered, with repeated
    takes grouped (`[TAKE A01 2/4]`) and stumbles flagged (⚠).
-2. `PY S/look.py <job>` → contact sheets in `work/look/`. Open every sheet. For each
+2. `PY S/look.py <job>` → contact sheets in `.work/look/`. Open every sheet. For each
    B-roll clip write down what happens when (e.g. "pour 1.5-4.5s, looks at camera
    0-5s, sip 5.5-7.6s"). Never use the moments where they look at the camera,
    fumble or the shot shakes.
 
-## 3. Plan the edit (`<job>/edit.json`)
+## 3. Plan the edit (`<job>/.work/edit.json`)
 Read `references/editing-playbook.md` (the craft) and `references/edit-plan.md` (the
 format) before writing it. In short:
 - Hook → problem → solution → proof → CTA, built from the best take of each line.
@@ -58,10 +62,10 @@ format) before writing it. In short:
 
 ## 4. Build, listen, look, fix
 ```
-PY S/build.py <job> --preview          fast draft
-PY S/qa.py <job>/out/<name>_preview.mp4 --learn
+PY S/build.py <job> --preview          fast draft (saved in .work)
+PY S/qa.py <job>/.work/<name>_preview.mp4 --learn
 PY S/build.py <job> --preview          again, with the learned cuts
-PY S/qa.py <job>/out/<name>_preview.mp4
+PY S/qa.py <job>/.work/<name>_preview.mp4
 ```
 qa.py re-transcribes the finished video and reports clipped/missing words, leftover
 ums and pauses, and loudness. `--learn` turns leftover pauses into cuts for the next
@@ -72,7 +76,7 @@ If a word keeps coming back missing, use a different take or end the segment ear
 
 ## 5. Final renders
 `PY S/build.py <job>` for the main edit, then `--variant <name>` for each hook. Run
-qa.py on each. Finished files are in `<job>/out/`.
+qa.py on each. Finished files are in `<job>/Finished videos/`.
 
 If the creator wants to finish the edit in CapCut themselves (their own captions,
 text or music), add `--clean`: the same cut, zooms and B-roll with no captions, hook
