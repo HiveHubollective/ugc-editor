@@ -100,6 +100,10 @@ Give notes in plain words, with rough times if you can:
 
 Claude rebuilds in a few minutes.
 
+**Want to add your own captions or text in CapCut?** Ask for a clean version: "Make me
+clean versions too". You get the same edit with no captions or text on it, ready to
+finish in CapCut.
+
 ---
 
 ## Filming tips that make the edit better

@@ -368,6 +368,8 @@ def main():
     ap.add_argument('--plan', default='edit.json')
     ap.add_argument('--variant')
     ap.add_argument('--preview', action='store_true', help='fast low-quality render')
+    ap.add_argument('--clean', action='store_true',
+                    help='no captions, hook text or cards: the same cut, ready to finish in CapCut')
     args = ap.parse_args()
     job = os.path.abspath(args.job)
     plan = json.load(open(os.path.join(job, args.plan)))
@@ -385,6 +387,10 @@ def main():
         segs = v['segments'] + segs[v.get('replace_first', 1):]
         hook = deep_merge(hook, v.get('hook', {}))
         name = f"{name}_{args.variant}"
+    if args.clean:
+        hook = {}
+        plan = dict(plan, cards=[])
+        name = f"{name}_clean"
 
     words = {}
     for f in os.listdir(os.path.join(job, 'work', 'words')):
@@ -540,7 +546,7 @@ def main():
 
     # 3. video, frame by frame
     capf = os.path.join(tmp, 'cap.ass')
-    write_captions(cap_words, style['caption'], capf)
+    write_captions([] if args.clean else cap_words, style['caption'], capf)
     out_dir = os.path.join(job, 'out')
     os.makedirs(out_dir, exist_ok=True)
     out = os.path.join(out_dir, f"{name}{'_preview' if args.preview else ''}.mp4")

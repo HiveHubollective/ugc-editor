@@ -74,6 +74,10 @@ If a word keeps coming back missing, use a different take or end the segment ear
 `PY S/build.py <job>` for the main edit, then `--variant <name>` for each hook. Run
 qa.py on each. Finished files are in `<job>/out/`.
 
+If the creator wants to finish the edit in CapCut themselves (their own captions,
+text or music), add `--clean`: the same cut, zooms and B-roll with no captions, hook
+text or cards, saved as `<name>_clean.mp4`.
+
 ## 6. Hand it over
 Tell the creator, briefly:
 - the files and which hook each one opens with
