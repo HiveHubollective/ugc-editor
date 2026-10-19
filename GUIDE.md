@@ -3,6 +3,8 @@
 Give Claude your raw clips, the brand brief and the brand website. Get back a
 finished, captioned ad plus 3-5 hook variations.
 
+![How it works](docs/images/how-it-works.png)
+
 ## 1. Get Claude on your desktop
 - You need a **Mac** and a **paid Claude plan** (Pro or Max).
 - Download the app from **claude.ai/download**, open it and sign in.
@@ -26,6 +28,9 @@ tools: type it (nothing shows as you type) and press Enter. Done when you see
 **READY**. You only do this once.
 
 ## 3. Your UGC Jobs folder
+
+![Where your files go](docs/images/where-your-files-go.png)
+
 Say **"Start a new UGC job for [brand]"**. Claude makes a folder for that brand
 inside **UGC Jobs** on your Desktop:
 
