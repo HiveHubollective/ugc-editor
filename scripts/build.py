@@ -366,9 +366,13 @@ def write_captions(words, st, path):
              f"{c['outline']},{c.get('shadow', 1)},5,60,60,0,1", "",
              "[Events]", "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"]
     pop = r"{\fscx85\fscy85\t(0,70,\fscx100\fscy100)}" if c.get('pop', True) else ''
+    lead = c.get('lead', 0.066)     # show each word 2 frames early so it never lags the voice
+    prev = 0
     for i, (w, s, e) in enumerate(words):
-        nxt = words[i + 1][1] if i + 1 < len(words) else e + 0.3
+        s = max(prev, s - lead)
+        nxt = words[i + 1][1] - lead if i + 1 < len(words) else e + 0.3
         end = max(min(nxt, e + 0.25), s + 0.1)
+        prev = end
         txt = w.strip()
         if c.get('strip_punctuation', False):
             txt = txt.strip(',.')
@@ -630,7 +634,14 @@ def main():
     enc.stdin.close(); enc.wait()
     json.dump({'segments': [{'say': s['say'], 'start': s['_start'], 'end': s['_end']} for s in segs],
                'words': cap_words, 'total': total, 'cuts': len(parts), 'shots': len(shots),
-               'parts': [{k: p[k] for k in ('clip', 'a', 'b', 'at', 'seg')} for p in parts]},
+               'parts': [{k: p[k] for k in ('clip', 'a', 'b', 'at', 'seg')} for p in parts],
+               # where the overlays sit, so qa.py can check faces, mouths and B-roll reuse
+               'broll': [{'clip': b['clip'], 'in': b['in'], 't0': b['t0'], 't1': b['t1']} for b in broll],
+               'cards': [{'t0': c['t0'], 't1': c['t1'], 'y0': H * c.get('y', 0.2) - c['sprite'].shape[0] / 2,
+                          'y1': H * c.get('y', 0.2) + c['sprite'].shape[0] / 2} for c in cards],
+               'hook': ({'t1': hook_end, 'y0': style['hook']['y'], 'y1': style['hook']['y'] + hook_sp.shape[0]}
+                        if hook_sp is not None else None),
+               'caption': None if args.clean else {'y': H * style['caption']['y'], 'size': style['caption']['size']}},
               open(jpath(job, 'work', os.path.basename(out).replace('.mp4', '.timeline.json')), 'w'))
     print(f"done: {out}  ({total:.1f}s, {len(parts)} cuts, {len(shots)} shots)")
 

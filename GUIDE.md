@@ -57,6 +57,12 @@ Then watch every version with sound on and ask for changes in normal words:
 "use a different take for the hook", "cut the line about X", "the B-roll comes in
 too early", "make clean versions too" (no captions or text, to finish in CapCut).
 
+When Claude fixes something, it asks if it should add it to its rules. Say yes:
+that's how it learns your taste, so the next edit needs fewer notes.
+
+**Better footage, better ad:** write your hook before you film. Claude can cut and
+polish, but it can't add a hook you never said.
+
 ---
 
 **Stuck?** Tell Claude what happened in plain words and paste any error. It can

@@ -23,7 +23,8 @@ scripts/setup.sh              installs and checks everything
 scripts/transcribe.py         ears: every word timed, takes grouped, stumbles flagged
 scripts/look.py               eyes: contact sheets of B-roll and product photos
 scripts/build.py              renders the edit and every hook variation
-scripts/qa.py                 re-listens and looks at the finished video, learns missed cuts
+scripts/qa.py                 re-listens and looks at the finished video, learns missed cuts,
+                              checks captions stay off the mouth and every cut is clean
 fonts/                        Fredoka and Rubik (SIL Open Font Licence)
 ```
 

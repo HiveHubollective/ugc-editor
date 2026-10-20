@@ -70,8 +70,13 @@ PY S/qa.py <job>/.work/<name>_preview.mp4
 ```
 qa.py re-transcribes the finished video and reports clipped/missing words, leftover
 ums and pauses, and loudness. `--learn` turns leftover pauses into cuts for the next
-build. Then open its contact sheets and check: hook text and cards readable and not
-covering the face, captions on screen, B-roll on the right words, nothing awkward.
+build. It also checks the frames: captions never over the mouth, hook text and cards never
+over the face, no one-frame flashes, the creator never off screen for more than
+3.5 s, and no B-roll moment used twice. Then open its contact sheets (`.sheet-N.jpg`)
+and cut strips (`.cuts-N.jpg`, 3 frames either side of every cut) and check: hook
+text and cards readable, B-roll on the right words, every cut clean, nothing awkward.
+Then watch it as a stranger scrolling past would: would you stop in the first 3
+seconds, and where would you get bored and swipe? Fix that spot before handing over.
 Fix the plan and rebuild until qa.py says PASS (one leftover pause under 0.4s is fine).
 If a word keeps coming back missing, use a different take or end the segment earlier.
 
@@ -89,7 +94,10 @@ Tell the creator, briefly:
 - what you cut or changed from the brief and why (claims, takes you skipped)
 - what to check by ear (names, brand words, the joins), because you can't hear tone
 Then take their notes ("swap the hook take", "B-roll too early", "cut that line") and
-rebuild. Add anything they correct twice to the Rules in `references/editing-playbook.md`.
+rebuild. After each fix, ask: "Want me to add that to my rules so it doesn't happen
+again?" If yes (or it's the second time they've said it), write it into the Rules in
+`references/editing-playbook.md`: their note in their words, then what to do instead.
+The next job starts from the improved rules.
 
 ## Mistakes to avoid
 | Don't | Do |
@@ -99,4 +107,5 @@ rebuild. Add anything they correct twice to the Rules in `references/editing-pla
 | Trust the transcript's spelling of brand names | Add `caption_fixes` for the brand and product names |
 | B-roll that starts with them looking at the camera | Start the B-roll where the action starts (from look.py) |
 | Pop sounds, cartoon animations, effects nobody asked for | Clean cuts, zooms and whips; sound effects only on request |
+| Cutting an um that runs straight into the next word | Leave it: cut between phrases, never inside one |
 | Showing the creator a video you haven't QA'd | Build → qa --learn → build → qa → look at the sheets |
