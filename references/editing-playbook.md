@@ -97,8 +97,9 @@ hook text. The body after the hook stays the same. Name the files by the angle:
   a product shot. If there's no real asset, use the brand name as plain text.
 
 ## Rules (learned from creators, add new ones here)
-Every note a creator gives twice becomes a rule here, written as: the note in their
-words, then what to do instead. That way nobody gives the same note three times.
+These came from real edits. A creator's own notes go in their rules file
+(`~/.ugc-editor/my-rules.md`, see SKILL.md), written as: the note in their words, then
+what to do instead. That way nobody gives the same note three times.
 
 - Cut every dead space, not just the long ones.
 - B-roll never starts on the creator looking at the camera.

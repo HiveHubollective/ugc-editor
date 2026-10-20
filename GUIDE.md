@@ -57,7 +57,14 @@ Then watch every version with sound on and ask for changes in normal words:
 too early", "make clean versions too" (no captions or text, to finish in CapCut).
 
 When Claude fixes something, it asks if it should add it to its rules. Say yes:
-that's how it learns your taste, so the next edit needs fewer notes.
+that's how it learns your taste, so the next edit needs fewer notes. Your rules are
+saved on your Mac in `~/.ugc-editor/my-rules.md` and stay put when the editor updates.
+
+Start a **new chat for each new job**. The editor and your rules carry over to every
+chat. To go back to an older job, open its chat from the sidebar, or start a new one
+and say "carry on with the [brand] job".
+
+**Updating:** say "update the UGC editor" and Claude pulls the latest version.
 
 **Better footage, better ad:** write your hook before you film. Claude can cut and
 polish, but it can't add a hook you never said.

@@ -13,6 +13,13 @@ claims that would get the ad rejected.
 Python for every script: `~/.ugc-editor/venv/bin/python` (written `PY` below).
 Scripts live in this skill's `scripts/` folder (written `S` below).
 
+## Your rules
+The creator's own rules live in `~/.ugc-editor/my-rules.md`, outside this skill
+folder, so updating the editor never wipes them. Read it at the start of every job;
+where it disagrees with the playbook, it wins. In a web (cloud) session that folder
+is wiped when the session ends, so there keep them in `my-rules.md` at the top of
+the session's repo and commit and push after adding one.
+
 ## 0. Setup check (first time, or if anything errors)
 Run `bash S/setup.sh`. It installs what's missing and ends with READY or NOT READY.
 Don't edit until it says READY.
@@ -64,8 +71,8 @@ If the brief has no CTA or length, use the defaults in `references/editing-playb
    fumble or the shot shakes.
 
 ## 3. Plan the edit (`<job>/.work/edit.json`)
-Read `references/editing-playbook.md` (the craft) and `references/edit-plan.md` (the
-format) before writing it. In short:
+Read `references/editing-playbook.md` (the craft), the creator's rules file, and
+`references/edit-plan.md` (the format) before writing it. In short:
 - Hook → problem → solution → proof → CTA, built from the best take of each line.
 - Copy the `say` text from lines.md exactly, and lock each segment to its line ids.
 - Drop anything the brief rules out, plus medical or unverifiable claims.
@@ -109,9 +116,9 @@ Tell the creator, briefly:
 - what to check by ear (names, brand words, the joins), because you can't hear tone
 Then take their notes ("swap the hook take", "B-roll too early", "cut that line") and
 rebuild. After each fix, ask: "Want me to add that to my rules so it doesn't happen
-again?" If yes (or it's the second time they've said it), write it into the Rules in
-`references/editing-playbook.md`: their note in their words, then what to do instead.
-The next job starts from the improved rules.
+again?" If yes (or it's the second time they've said it), add it to their rules file (see
+Your rules, above): their note in their words, then what to do instead. The next job
+starts from the improved rules.
 
 ## Mistakes to avoid
 | Don't | Do |
