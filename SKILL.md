@@ -20,6 +20,17 @@ where it disagrees with the playbook, it wins. In a web (cloud) session that fol
 is wiped when the session ends, so there keep them in `my-rules.md` at the top of
 the session's repo and commit and push after adding one.
 
+## Web (cloud) sessions
+If you're running in a cloud session rather than on the creator's Mac, the footage
+comes as a Google Drive link (shared "anyone with the link"). Make the job folder
+as usual, then download every file into `Raw files/`: `uv pip install --python
+~/.ugc-editor/venv/bin/python gdown` and `~/.ugc-editor/venv/bin/gdown --folder
+"<link>" -O "<job>/Raw files"`, or list the folder with the Google Drive connector
+and `curl -L` each file from `https://drive.usercontent.google.com/download?id=<id>&export=download&confirm=t`.
+If a download is blocked, tell them to set the environment's Network access to Full.
+Hand finished videos back as files in the chat, one per message, since the
+session's computer is wiped when it ends.
+
 ## 0. Setup check (first time, or if anything errors)
 Run `bash S/setup.sh`. It installs what's missing and ends with READY or NOT READY.
 Don't edit until it says READY.
