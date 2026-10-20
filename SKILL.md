@@ -14,11 +14,26 @@ Python for every script: `~/.ugc-editor/venv/bin/python` (written `PY` below).
 Scripts live in this skill's `scripts/` folder (written `S` below).
 
 ## Your rules
-The creator's own rules live in `~/.ugc-editor/my-rules.md`, outside this skill
-folder, so updating the editor never wipes them. Read it at the start of every job;
-where it disagrees with the playbook, it wins. In a web (cloud) session that folder
-is wiped when the session ends, so there keep them in `my-rules.md` at the top of
-the session's repo and commit and push after adding one.
+The creator's own rules live in `~/Desktop/UGC Jobs/My editing rules.md`, a plain
+file they can open, read and edit themselves. It sits outside this skill folder, so
+updating the editor never touches it. Read it at the start of every job; where it
+disagrees with the playbook or the house style, it wins (put look changes like
+caption colour or size into the plan's `style_overrides`).
+
+**When the creator asks the editor to work differently** ("always make captions
+bigger", "never use whips", "end every ad on the product"), write it into that rules
+file straight away, tell them you've saved it, and follow it from then on. Don't edit
+the files in this skill folder to do it: they're replaced when the editor updates.
+
+In a web (cloud) session the computer is wiped when it ends, so there keep the rules
+in `My editing rules.md` at the top of the session's repo and commit and push after
+adding one.
+
+## Updating the editor
+Only when the creator asks ("update the UGC editor"): `git -C ~/.claude/skills/ugc-editor
+pull`, then run `scripts/setup.sh` again. If the pull complains about local changes,
+`git -C ~/.claude/skills/ugc-editor stash` first (their rules file isn't in there, so
+nothing of theirs is lost). Tell them in one or two lines what's new (`git log`).
 
 ## Web (cloud) sessions
 If you're running in a cloud session rather than on the creator's Mac, the footage
@@ -127,7 +142,7 @@ Tell the creator, briefly:
 - what to check by ear (names, brand words, the joins), because you can't hear tone
 Then take their notes ("swap the hook take", "B-roll too early", "cut that line") and
 rebuild. After each fix, ask: "Want me to add that to my rules so it doesn't happen
-again?" If yes (or it's the second time they've said it), add it to their rules file (see
+again?" If yes (or it's the second time they've said it), add it to `My editing rules.md` (see
 Your rules, above): their note in their words, then what to do instead. The next job
 starts from the improved rules.
 

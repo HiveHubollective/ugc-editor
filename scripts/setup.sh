@@ -68,6 +68,11 @@ FREE_GB=$(df -Pk "$HOME" | awk 'NR==2{print int($4/1048576)}')
 
 if [ "$FAIL" = 0 ]; then
   mkdir -p "$HOME/Desktop/UGC Jobs" 2>/dev/null
+  RULES="$HOME/Desktop/UGC Jobs/My editing rules.md"
+  [ -e "$RULES" ] || printf '%s\n' "# My editing rules" "" \
+    "Claude reads this before every edit and follows it over its own defaults." \
+    "When you tell Claude to do something differently, it adds it here." \
+    "You can also type your own rules here, one per line." "" > "$RULES"
   echo "READY: say \"start a new UGC job for [brand]\" to Claude."
   echo "Python for the scripts: $VENV/bin/python"
 else
