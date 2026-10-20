@@ -84,7 +84,7 @@ hook text. The body after the hook stays the same. Name the files by the angle:
 
 ## Sound
 - Voice evened out and normalised to -14 LUFS. B-roll audio always muted.
-- No sound effects. Music only when the creator drops a track in `4 Music/` or asks:
+- No sound effects. Music only when the creator drops a track in Raw files or asks:
   set `"music"` in the plan, it sits quietly under the voice and dips when they speak.
 - Never let the music fade or duck the last spoken word.
 - Never use a popular or trending song in an ad for a brand: the brand needs music it's

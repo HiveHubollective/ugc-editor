@@ -28,9 +28,12 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 
-# Job folder layout (plain-English names; the old raw/... names still work)
-FOLDERS = {'talking': ['1 Talking clips', 'raw/talking'], 'broll': ['2 B-roll', 'raw/broll'],
-           'images': ['3 Product photos', 'raw/images'], 'out': ['Finished videos', 'out'],
+# Job folder layout: everything in 'Raw files' (sorted by sort.py into .work/sorted),
+# or the older numbered folders / raw/... names
+FOLDERS = {'talking': ['1 Talking clips', '.work/sorted/talking', 'raw/talking'],
+           'broll': ['2 B-roll', '.work/sorted/broll', 'raw/broll'],
+           'images': ['3 Product photos', '.work/sorted/images', 'raw/images'],
+           'out': ['Finished videos', 'out'],
            'work': ['.work', 'work']}
 
 

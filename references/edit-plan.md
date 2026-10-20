@@ -24,7 +24,7 @@ One file per job, at `<job>/.work/edit.json`. `build.py` reads it.
   ],
 
   "cards": [
-    {"image": "3 Product photos/range.jpg", "w": 0.62, "at": {"seg": 6, "word": "three"}, "dur": 4.2, "x": 0.5, "y": 0.17},
+    {"image": "Raw files/From website/range-01.jpg", "w": 0.62, "at": {"seg": 6, "word": "three"}, "dur": 4.2, "x": 0.5, "y": 0.17},
     {"title": "Key ingredients", "rows": ["Vitamin C", "Niacinamide", "Hyaluronic acid"], "at": {"seg": 4, "word": "vitamin"}, "dur": 2.6, "y": 0.16}
   ],
 
@@ -59,7 +59,7 @@ segment (or set `"dur"` in seconds).
   (a stray um qa.py keeps finding).
 - `beat` hook / problem / solution / proof / cta (for your own reading).
 
-**broll** each one: `clip` (file name in `2 B-roll/`), `in` (start second inside the
+**broll** each one: `clip` (the file name, as listed under broll in `.work/sorted.md`), `in` (start second inside the
 clip, from look.py), `dur` (1.5-3 s), `at` (`{"seg": n, "word": "..."}` the word it
 starts on, optional `"offset"` in seconds), `transition` `"whip"` or `"cut"`.
 
@@ -68,7 +68,7 @@ starts on, optional `"offset"` in seconds), `transition` `"whip"` or `"cut"`.
 `[left, top, right, bottom]` fractions of the photo to show only the product. Always crop
 phone photos to the product: a full portrait photo is too tall for a card.
 
-**music** optional `{"file": "track.mp3", "volume": 0.2}`: a track from `4 Music/`, looped
+**music** optional `{"file": "track.mp3", "volume": 0.2}`: a track from the music pile in `.work/sorted.md`, looped
 or trimmed to length, faded in and out, and ducked under the voice. 0.15-0.25 is a good
 background level.
 

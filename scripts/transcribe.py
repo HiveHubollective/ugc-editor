@@ -4,7 +4,7 @@
 Usage:
     python3 transcribe.py <job_dir> [--model small.en]
 
-Reads every video in <job>/1 Talking clips/, writes (in the hidden .work folder):
+Reads every talking clip (sorted from Raw files by sort.py), writes (in the hidden .work folder):
     .work/words/<clip>.json   word list [[word, start, end], ...]
     .work/lines.md            numbered lines to choose from, with
                                        repeated takes grouped and stumbles flagged
@@ -15,9 +15,12 @@ import argparse, json, os, re, subprocess, sys
 from difflib import SequenceMatcher
 import numpy as np
 
-# Job folder layout (plain-English names; the old raw/... names still work)
-FOLDERS = {'talking': ['1 Talking clips', 'raw/talking'], 'broll': ['2 B-roll', 'raw/broll'],
-           'images': ['3 Product photos', 'raw/images'], 'out': ['Finished videos', 'out'],
+# Job folder layout: everything in 'Raw files' (sorted by sort.py into .work/sorted),
+# or the older numbered folders / raw/... names
+FOLDERS = {'talking': ['1 Talking clips', '.work/sorted/talking', 'raw/talking'],
+           'broll': ['2 B-roll', '.work/sorted/broll', 'raw/broll'],
+           'images': ['3 Product photos', '.work/sorted/images', 'raw/images'],
+           'out': ['Finished videos', 'out'],
            'work': ['.work', 'work']}
 
 

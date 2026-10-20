@@ -31,10 +31,13 @@ W, H = 1080, 1920
 SKILL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-# Job folder layout (plain-English names; the old raw/... names still work)
-FOLDERS = {'talking': ['1 Talking clips', 'raw/talking'], 'broll': ['2 B-roll', 'raw/broll'],
-           'images': ['3 Product photos', 'raw/images'], 'out': ['Finished videos', 'out'],
-           'music': ['4 Music', 'raw/music'],
+# Job folder layout: everything in 'Raw files' (sorted by sort.py into .work/sorted),
+# or the older numbered folders / raw/... names
+FOLDERS = {'talking': ['1 Talking clips', '.work/sorted/talking', 'raw/talking'],
+           'broll': ['2 B-roll', '.work/sorted/broll', 'raw/broll'],
+           'images': ['3 Product photos', '.work/sorted/images', 'raw/images'],
+           'out': ['Finished videos', 'out'],
+           'music': ['4 Music', '.work/sorted/music', 'raw/music'],
            'work': ['.work', 'work']}
 
 

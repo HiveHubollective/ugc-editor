@@ -36,18 +36,17 @@ tools: type it (nothing shows as you type) and press Enter. Done when you see
 ![Where your files go](docs/images/where-your-files-go.png)
 
 Say **"Start a new UGC job for [brand]"**. Claude makes a folder for that brand
-inside **UGC Jobs** on your Desktop:
+inside **UGC Jobs** on your Desktop, with two folders in it:
 
 | Folder | What goes in it |
 |---|---|
-| **1 Talking clips** | every talking-to-camera clip, all the takes, mistakes and all |
-| **2 B-roll** | your B-roll clips |
-| **3 Product photos** | product photos for pop-ups (optional) |
-| **4 Music** | a licence-free track, if you want music (optional) |
+| **Raw files** | everything: every talking take (mistakes and all), B-roll, product photos, a music track if you want one, the brief. Any order, any file names. |
 | **Finished videos** | your finished edits appear here |
 
-AirDrop your clips from your phone and drag them into the right folder. Drop the
-brief (PDF or screenshots) into the brand folder too, or paste it into the chat.
+AirDrop your clips from your phone and drag them all into **Raw files**. You don't
+sort anything: Claude listens to every clip and works out which are talking clips
+and which are B-roll. No product photos? Claude grabs them from the brand's website.
+You can also paste the brief into the chat instead.
 
 ## 4. Ask for the edit, then changes
 ```
