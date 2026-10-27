@@ -1,0 +1,340 @@
+<title>UGC ad review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600&family=Rubik:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<!--
+  Review page for the UGC editor (SKILL.md, step 6). Claude copies this file into
+  the job's .work/review/ folder, fills in the config below and the <title>, and
+  publishes it as a private Artifact with the db capability. The creator's notes
+  live in the "notes" collection: {video, t, type, text, status, round}. Claude
+  marks a note done with {status: "fixed", fix: "what changed", fixed_round: N},
+  or leaves it "open" with fix: "why not" when it can't be done.
+-->
+<script id="review-config" type="application/json">
+{
+  "brand": "Brand",
+  "round": 1,
+  "videos": [
+    {"id": "main", "label": "Main edit", "src": "main-r1.mp4"}
+  ]
+}
+</script>
+<style>
+  /* Layout: tall 9:16 player on the left, notes on the right; stacked on a phone. */
+  :root {
+    --bg: #f3f4f6; --surface: #ffffff; --fg: #1c1e23; --muted: #5f6570; --line: #d9dce2;
+    --accent: #b97c06; --accent-ink: #ffffff;
+    --cut: #c8382f; --broll: #2563c9; --caption: #7c48c9; --other: #5f6570; --done: #2f8a4f;
+    --display: "Fredoka", "Rubik", system-ui, sans-serif;
+    --body: "Rubik", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14161a; --surface: #1d2025; --fg: #eceef1; --muted: #a0a6b0; --line: #30343b;
+      --accent: #f0b23a; --accent-ink: #1c1e23;
+      --cut: #f0675e; --broll: #6b9ff0; --caption: #b18cf0; --other: #a0a6b0; --done: #5cc17f;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161a; --surface: #1d2025; --fg: #eceef1; --muted: #a0a6b0; --line: #30343b;
+    --accent: #f0b23a; --accent-ink: #1c1e23;
+    --cut: #f0675e; --broll: #6b9ff0; --caption: #b18cf0; --other: #a0a6b0; --done: #5cc17f;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--fg); font: 15px/1.5 var(--body);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 20px 40px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 20px; }
+  header { display: grid; gap: 6px; }
+  .title-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 14px; }
+  h1 { font: 600 clamp(24px, 4vw, 32px)/1.15 var(--display); margin: 0; text-wrap: balance; }
+  .round { font: 500 12px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase;
+    padding: 6px 9px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); }
+  .how { margin: 0; color: var(--muted); max-width: 62ch; }
+  .layout { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 24px; align-items: start; }
+  @media (max-width: 760px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+  .player { display: grid; gap: 10px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+  @media (max-width: 760px) { .player { position: static; } }
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tabs button { font: 500 13px/1 var(--body); padding: 8px 12px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
+  .tabs button[aria-selected="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  .tabs .n { font-family: var(--mono); font-size: 11px; opacity: .7; margin-left: 6px; }
+  .frame { aspect-ratio: 9 / 16; max-width: 100%; max-height: 78vh; background: #000; border-radius: 14px; overflow: hidden; margin: 0 auto; width: 100%; }
+  video { width: 100%; height: 100%; display: block; object-fit: contain; background: #000; }
+  .track { position: relative; height: 22px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); }
+  .track .head { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--fg); pointer-events: none; }
+  .track button { position: absolute; top: 4px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%;
+    border: 2px solid var(--c); background: var(--c); cursor: pointer; padding: 0; }
+  .track button.fixed { background: var(--surface); }
+
+  .notes { display: grid; gap: 16px; min-width: 0; }
+  form { display: grid; gap: 10px; padding: 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
+  .at { display: flex; align-items: center; gap: 10px; color: var(--muted); }
+  .stamp { font: 500 18px/1 var(--mono); color: var(--fg); font-variant-numeric: tabular-nums; }
+  fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .type input { position: absolute; opacity: 0; pointer-events: none; }
+  .type span { display: inline-block; font: 500 13px/1 var(--body); padding: 8px 12px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); color: var(--fg); }
+  .type input:checked + span { background: var(--c); border-color: var(--c); color: #fff; }
+  .type input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+  textarea { width: 100%; font: 15px/1.45 var(--body); padding: 10px 12px; border-radius: 8px; resize: vertical;
+    border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .primary { font: 600 14px/1 var(--body); padding: 11px 16px; border-radius: 8px; border: 0; cursor: pointer;
+    background: var(--accent); color: var(--accent-ink); }
+  .msg { color: var(--muted); font-size: 13px; }
+  .banner { margin: 0; padding: 10px 12px; border-radius: 8px; border: 1px dashed var(--line); color: var(--muted); font-size: 14px; }
+  button:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  h2 { font: 600 18px/1.2 var(--display); margin: 0; display: flex; gap: 10px; align-items: baseline; }
+  h2 .n { font: 500 12px/1 var(--mono); color: var(--muted); }
+  ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 12px; align-items: start;
+    padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--c); }
+  li.fixed { border-left-color: var(--done); }
+  .time { font: 500 14px/1.6 var(--mono); font-variant-numeric: tabular-nums; background: none; border: 0; padding: 0;
+    color: var(--fg); cursor: pointer; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; }
+  .chip { font-weight: 600; color: var(--c); text-transform: uppercase; letter-spacing: .06em; }
+  .rnd, .state { font-family: var(--mono); color: var(--muted); }
+  li.fixed .state { color: var(--done); }
+  .text { margin: 2px 0 0; overflow-wrap: anywhere; }
+  .fix { margin: 4px 0 0; font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+  .fix b { color: var(--done); font-weight: 600; }
+  .remove { font: 13px/1.6 var(--body); color: var(--muted); background: none; border: 0; cursor: pointer; padding: 0; }
+  .remove:hover { color: var(--cut); }
+  .empty { margin: 0; color: var(--muted); }
+  .t-cut { --c: var(--cut); } .t-broll { --c: var(--broll); } .t-caption { --c: var(--caption); } .t-other { --c: var(--other); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="title-row">
+      <h1 id="heading">Ad review</h1>
+      <span class="round" id="round">Round 1</span>
+    </div>
+    <p class="how">Watch each version with sound on. Pause where something's off, pick what kind of fix it needs and write a note. Claude reads your notes, fixes them, marks each one fixed and posts the next round here.</p>
+  </header>
+
+  <div class="layout">
+    <section class="player" aria-label="Draft video">
+      <div class="tabs" id="tabs" role="tablist"></div>
+      <div class="frame"><video id="video" controls playsinline preload="metadata"></video></div>
+      <div class="track" id="track" aria-label="Notes on the timeline"><div class="head" id="head"></div></div>
+    </section>
+
+    <section class="notes" aria-label="Notes">
+      <form id="form">
+        <div class="at"><span class="stamp" id="stamp">0:00.0</span><span id="at-label">Note for this moment</span></div>
+        <fieldset id="types">
+          <legend>Kind of fix</legend>
+          <label class="type t-cut"><input type="radio" name="type" id="type-cut" value="cut" checked><span>Cut</span></label>
+          <label class="type t-broll"><input type="radio" name="type" id="type-broll" value="broll"><span>B-roll</span></label>
+          <label class="type t-caption"><input type="radio" name="type" id="type-caption" value="caption"><span>Caption</span></label>
+          <label class="type t-other"><input type="radio" name="type" id="type-other" value="other"><span>Other</span></label>
+        </fieldset>
+        <textarea id="text" rows="3" placeholder="e.g. cut the pause before &quot;honestly&quot;"></textarea>
+        <div class="actions">
+          <button class="primary" type="submit" id="save">Add note</button>
+          <span class="msg" id="msg" role="status"></span>
+        </div>
+        <p class="banner" id="offline" hidden>Notes can't be saved from this view. Write each note here and press Copy note, then paste it into the chat with Claude.</p>
+      </form>
+
+      <h2>Notes <span class="n" id="count"></span></h2>
+      <ol id="list"></ol>
+      <p class="empty" id="empty">No notes on this version yet. Pause on a moment and add the first one.</p>
+    </section>
+  </div>
+</div>
+
+<script>
+(() => {
+  const cfg = JSON.parse(document.getElementById('review-config').textContent);
+  const TYPES = { cut: 'Cut', broll: 'B-roll', caption: 'Caption', other: 'Other' };
+  const $ = id => document.getElementById(id);
+  const video = $('video');
+  let current = cfg.videos[0];
+  let notes = [];
+  let db = null;
+  let saving = false;
+
+  $('heading').textContent = cfg.brand + ' ad review';
+  $('round').textContent = 'Round ' + cfg.round;
+
+  const fmt = t => {
+    const m = Math.floor(t / 60), s = t - m * 60;
+    return m + ':' + (s < 10 ? '0' : '') + s.toFixed(1);
+  };
+  const say = text => { $('msg').textContent = text; };
+
+  // each draft is loaded whole as a blob so the player can always seek, whatever the server supports
+  const blobs = {};
+  async function load(v) {
+    if (!blobs[v.src]) {
+      try {
+        const r = await fetch(v.src);
+        if (!r.ok) throw new Error(r.status);
+        blobs[v.src] = URL.createObjectURL(await r.blob());
+      } catch { blobs[v.src] = v.src; }
+    }
+    if (current === v) video.src = blobs[v.src];
+  }
+
+  function pick(v) {
+    current = v;
+    load(v);
+    renderTabs(); render();
+  }
+
+  function renderTabs() {
+    const tabs = $('tabs');
+    tabs.hidden = cfg.videos.length < 2;
+    tabs.replaceChildren(...cfg.videos.map(v => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.setAttribute('role', 'tab');
+      b.setAttribute('aria-selected', String(v === current));
+      b.textContent = v.label;
+      const open = notes.filter(n => n.video === v.id && n.status !== 'fixed').length;
+      if (open) { const n = document.createElement('span'); n.className = 'n'; n.textContent = open; b.append(n); }
+      b.onclick = () => pick(v);
+      return b;
+    }));
+  }
+
+  function jump(t) {
+    video.currentTime = Math.max(0, t - 1);
+    video.play().catch(() => {});
+  }
+
+  function render() {
+    const mine = notes.filter(n => n.video === current.id).sort((a, b) => a.t - b.t);
+    const open = mine.filter(n => n.status !== 'fixed').length;
+    $('count').textContent = mine.length ? open + ' open, ' + (mine.length - open) + ' fixed' : '';
+    $('empty').hidden = mine.length > 0;
+    $('list').replaceChildren(...mine.map(n => {
+      const li = document.createElement('li');
+      li.className = 't-' + (TYPES[n.type] ? n.type : 'other') + (n.status === 'fixed' ? ' fixed' : '');
+      const time = document.createElement('button');
+      time.type = 'button'; time.className = 'time'; time.textContent = fmt(n.t);
+      time.title = 'Play from just before this moment';
+      time.onclick = () => jump(n.t);
+      const body = document.createElement('div');
+      const meta = document.createElement('div'); meta.className = 'meta';
+      const chip = document.createElement('span'); chip.className = 'chip'; chip.textContent = TYPES[n.type] || 'Other';
+      const rnd = document.createElement('span'); rnd.className = 'rnd'; rnd.textContent = 'R' + (n.round || 1);
+      const state = document.createElement('span'); state.className = 'state';
+      state.textContent = n.status === 'fixed' ? 'Fixed' + (n.fixed_round ? ' in R' + n.fixed_round : '') : 'Open';
+      meta.append(chip, rnd, state);
+      const text = document.createElement('p'); text.className = 'text'; text.textContent = n.text;
+      body.append(meta, text);
+      if (n.fix) {
+        const fix = document.createElement('p'); fix.className = 'fix';
+        const b = document.createElement('b'); b.textContent = n.status === 'fixed' ? 'Changed: ' : 'Claude: ';
+        fix.append(b, document.createTextNode(n.fix));
+        body.append(fix);
+      }
+      li.append(time, body);
+      if (db && n.status !== 'fixed') {
+        const rm = document.createElement('button');
+        rm.type = 'button'; rm.className = 'remove'; rm.textContent = 'Remove';
+        rm.onclick = async () => {
+          rm.disabled = true;
+          try { await db.collection('notes').doc(n.id).delete(); }
+          catch { rm.disabled = false; say("Couldn't remove that note. Try again."); }
+        };
+        li.append(rm);
+      }
+      return li;
+    }));
+    drawTrack(mine);
+  }
+
+  function drawTrack(mine) {
+    const track = $('track'), head = $('head');
+    const d = video.duration;
+    track.replaceChildren(head);
+    if (!d || !isFinite(d)) return;
+    for (const n of mine) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 't-' + (TYPES[n.type] ? n.type : 'other') + (n.status === 'fixed' ? ' fixed' : '');
+      b.style.left = Math.min(100, n.t / d * 100) + '%';
+      b.title = fmt(n.t) + ' ' + (TYPES[n.type] || 'Other') + ': ' + n.text;
+      b.setAttribute('aria-label', b.title);
+      b.onclick = () => jump(n.t);
+      track.append(b);
+    }
+  }
+
+  function tick() {
+    $('stamp').textContent = fmt(video.currentTime || 0);
+    const d = video.duration;
+    $('head').style.left = d && isFinite(d) ? (video.currentTime / d * 100) + '%' : '0';
+  }
+  video.addEventListener('timeupdate', tick);
+  video.addEventListener('seeked', tick);
+  video.addEventListener('loadedmetadata', () => { tick(); render(); });
+  $('text').addEventListener('focus', () => video.pause());
+  $('text').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('form').requestSubmit(); }
+  });
+
+  $('form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const text = $('text').value.trim();
+    if (!text) { say('Write what to change first.'); $('text').focus(); return; }
+    const note = {
+      video: current.id, t: Math.round(video.currentTime * 10) / 10,
+      type: document.querySelector('input[name="type"]:checked').value,
+      text, status: 'open', round: cfg.round, created: new Date().toISOString(),
+    };
+    if (!db) {
+      const line = current.label + ' ' + fmt(note.t) + ' ' + TYPES[note.type] + ': ' + text;
+      try { await navigator.clipboard.writeText(line); say('Copied. Paste it into the chat.'); }
+      catch { say(line); }
+      return;
+    }
+    if (saving) return;
+    saving = true; $('save').disabled = true;
+    try {
+      await db.collection('notes').add(note);
+      $('text').value = '';
+      say('Saved at ' + fmt(note.t) + '.');
+    } catch {
+      say("Couldn't save that note. Copy it into the chat instead.");
+    } finally {
+      saving = false; $('save').disabled = false;
+    }
+  });
+
+  function offline() {
+    db = null;
+    $('offline').hidden = false;
+    $('save').textContent = 'Copy note';
+    render();
+  }
+
+  pick(current);
+  const use = window.claude && window.claude.use ? window.claude.use('db') : Promise.resolve(null);
+  use.then(found => {
+    if (!found) return offline();
+    db = found;
+    db.collection('notes').onSnapshot(snap => {
+      notes = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+      renderTabs(); render();
+    }, offline);
+  }, offline);
+})();
+</script>

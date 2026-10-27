@@ -13,10 +13,13 @@ The plan (<job_dir>/edit.json) says WHAT to show; this script does the craft:
   * lays B-roll full screen with a slow push and an optional whip transition
   * pops in image cards and the hook box, and burns in one-word captions
   * evens out the voice and normalises to -14 LUFS (B-roll is always muted)
+  * when the plan has hook variants, the main edit saves the finished frames of
+    everything after the hook (the core) in .work/core/, and each --variant build
+    reuses them, so only the new hook is cut, zoomed and composited
 
 See ../references/edit-plan.md for the plan format.
 """
-import argparse, json, os, re, subprocess, sys, tempfile
+import argparse, hashlib, json, os, re, subprocess, sys, tempfile
 from difflib import SequenceMatcher
 import numpy as np
 import cv2
@@ -220,12 +223,14 @@ def frames(path, start, n, fps):
                           '-vf', f'scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={fps}',
                           '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-'], stdout=subprocess.PIPE)
     last = None
-    for _ in range(n):
-        buf = p.stdout.read(W * H * 3)
-        if len(buf) == W * H * 3:
-            last = np.frombuffer(buf, np.uint8).reshape(H, W, 3).copy()
-        yield last if last is not None else np.zeros((H, W, 3), np.uint8)
-    p.stdout.close(); p.wait()
+    try:
+        for _ in range(n):
+            buf = p.stdout.read(W * H * 3)
+            if len(buf) == W * H * 3:
+                last = np.frombuffer(buf, np.uint8).reshape(H, W, 3).copy()
+            yield last if last is not None else np.zeros((H, W, 3), np.uint8)
+    finally:            # also runs when the caller stops early: don't leave ffmpeg waiting
+        p.stdout.close(); p.wait()
 
 
 def zoom(img, z, cx, cy, dx=0.0):
@@ -393,6 +398,8 @@ def main():
     ap.add_argument('--preview', action='store_true', help='fast low-quality render')
     ap.add_argument('--clean', action='store_true',
                     help='no captions, hook text or cards: the same cut, ready to finish in CapCut')
+    ap.add_argument('--fresh', action='store_true',
+                    help="render a variant in full instead of reusing the main edit's core")
     args = ap.parse_args()
     job = os.path.abspath(args.job)
     plan_path = (os.path.join(job, args.plan) if args.plan else
@@ -406,6 +413,9 @@ def main():
     segs = list(plan['segments'])
     hook = plan.get('hook', {})
     name = plan.get('name', 'edit')
+    # the core: the segments every variant shares (everything after the longest hook)
+    variants = plan.get('variants', [])
+    core_seg = max((x.get('replace_first', 1) for x in variants), default=0)
     if args.variant:
         v = next(x for x in plan['variants'] if x['name'] == args.variant)
         # anchors in the plan count segments of the main edit; shift them past the new opening
@@ -413,6 +423,8 @@ def main():
         segs = v['segments'] + segs[v.get('replace_first', 1):]
         hook = deep_merge(hook, v.get('hook', {}))
         name = f"{name}_{args.variant}"
+        core_seg += seg_shift
+    core_name = plan.get('name', 'edit') + ('_clean' if args.clean else '')
     if args.clean:
         hook = {}
         plan = dict(plan, cards=[])
@@ -499,7 +511,11 @@ def main():
     for si, sg in enumerate(segs):
         for pw in sg.get('punch', []):
             punches.append(at_time({'seg': si, 'word': pw}, plan_index=False))
-    tight = False
+    # wide / tight alternate on every real cut. With hook variants the count starts from the
+    # core's first shot (always tight), so the core is framed the same whichever hook opens
+    # the video, and a one-shot hook still opens wide
+    starts = [p for p in parts if p['new_shot']]
+    anchor = next((i for i, p in enumerate(starts) if p['seg'] >= core_seg), 0)
     shot_of_frame = np.zeros(nframes, int)
     base = np.ones(nframes)
     shot_start, shot_id = 0, -1
@@ -507,8 +523,8 @@ def main():
     for p in parts:
         f0, f1 = int(round(p['at'] * fps)), int(round((p['at'] + p['b'] - p['a']) * fps))
         if p['new_shot']:
-            tight = not tight if shot_id >= 0 else False
             shot_id += 1
+            tight = (shot_id - anchor) % 2 == (0 if core_seg else 1)
             shots.append([f0, f1, tight])
         else:
             shots[-1][1] = f1
@@ -525,26 +541,30 @@ def main():
     for fi in range(min(nframes, int(motion['open_dur'] * fps))):
         zf[fi] *= 1 + (motion['open_zoom'] - 1) * (1 - ease(fi / (motion['open_dur'] * fps)))
 
+    # overlays start and end on whole frames, so each one lands on the same frame in every variant
+    on_frame = lambda t: round(t * fps) / fps
+
     # B-roll timeline
     broll = []
     for b in plan.get('broll', []):
-        t0 = at_time(b['at'])
-        broll.append({**b, 't0': t0, 't1': min(total, t0 + b['dur']),
+        t0 = on_frame(at_time(b['at']))
+        broll.append({**b, 't0': t0, 't1': on_frame(min(total, t0 + b['dur'])),
                       'path': jpath(job, 'broll', b['clip'])})
     cards = []
     for c in plan.get('cards', []):
-        t0 = at_time(c['at'])
+        t0 = on_frame(at_time(c['at']))
         if 'image' in c:
             sp = image_sprite(os.path.join(job, c['image']), int(W * c.get('w', 0.6)), crop=c.get('crop'))
         else:
             sp = list_sprite(c['title'], c['rows'], style['hook'])
-        cards.append({**c, 't0': t0, 't1': t0 + c['dur'], 'sprite': sp})
+        cards.append({**c, 't0': t0, 't1': on_frame(t0 + c['dur']), 'sprite': sp})
     hook_sp, hook_end = None, 0
     if hook.get('text'):
         hook_sp = hook_sprite(hook['text'], style['hook'])
         hook_end = hook.get('dur') or segs[0]['_end']
         if hook.get('until_seg') is not None:
             hook_end = segs[hook['until_seg']]['_end']
+        hook_end = on_frame(hook_end)
 
     tmp = tempfile.mkdtemp()
     # 2. audio: exact-length parts, joined sample-accurately
@@ -598,13 +618,69 @@ def main():
                             '-crf', '26' if args.preview else '17', '-pix_fmt', 'yuv420p', '-profile:v', 'high',
                             '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', '-shortest', out],
                            stdin=subprocess.PIPE)
+    # The core cache. The main edit saves the core's finished frames (captions are added
+    # later by the encoder, so they're not in them) plus a fingerprint of how each frame
+    # was made. A variant reads back the run of frames at the end whose fingerprints match.
+    stamp = {}
+    look = json.dumps([W, H, fps, motion, style['hook']], sort_keys=True)
+    def fingerprint(fi, p, k, cx, cy):
+        t = fi / fps
+        if p['clip'] not in stamp:
+            st = os.stat(src(p['clip']))
+            stamp[p['clip']] = f"{st.st_size}:{st.st_mtime_ns}"
+        bits = [look, p['clip'], stamp[p['clip']], f"{p['a']:.4f}", k, f"{zf[fi]:.5f}", f"{cx:.0f},{cy:.0f}"]
+        for b in broll:
+            if b['t0'] <= t < b['t1']:
+                bits += ['b', b['clip'], b['in'], round((t - b['t0']) * fps), round((b['t1'] - b['t0']) * fps),
+                         b.get('transition', 'whip')]
+        for c in cards:
+            if c['t0'] <= t < c['t1']:
+                bits += ['c', {k_: v for k_, v in c.items() if k_ not in ('at', 't0', 't1', 'sprite')},
+                         round((t - c['t0']) * fps)]
+        if hook_sp is not None and t < hook_end:
+            bits += ['h', fi, hook['text'], f"{hook_end:.3f}"]
+        return hashlib.md5(json.dumps(bits, default=str).encode()).hexdigest()[:16]
+
+    keys = []
+    for p in parts:
+        cx, cy = face_centre(src(p['clip']), p['a'] + 0.3)
+        for k in range(int(round((p['b'] - p['a']) * fps))):
+            keys.append(fingerprint(len(keys), p, k, cx, cy))
+    core_dir = jpath(job, 'work', 'core')
+    core_mp4 = os.path.join(core_dir, core_name + '.mp4')
+    core_json = os.path.join(core_dir, core_name + '.json')
+    core_f0 = int(round(segs[core_seg]['_start'] * fps)) if 0 < core_seg < len(segs) else None
+    reuse = None            # (first frame to read from the cache, where it sits in the cache)
+    if args.variant and core_f0 is not None and not args.fresh and os.path.exists(core_json) \
+            and os.path.exists(core_mp4):
+        saved = json.load(open(core_json))
+        m = 0
+        while m < min(len(saved), len(keys)) and saved[-1 - m] == keys[-1 - m]:
+            m += 1
+        if m >= fps:
+            reuse = (len(keys) - m, len(saved) - m)
+            print(f"  reusing {m / fps:.1f}s of the main edit's core; rendering {(len(keys) - m) / fps:.1f}s")
+        else:
+            print("  note: the core changed since the main edit was built, so this variant is rendered in full")
+    cache = None
+    if not args.variant and core_f0 is not None:
+        os.makedirs(core_dir, exist_ok=True)
+        cache = subprocess.Popen(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'bgr24',
+                                  '-s', f'{W}x{H}', '-r', str(fps), '-i', '-', '-c:v', 'libx264',
+                                  '-preset', 'ultrafast', '-crf', '12', '-pix_fmt', 'yuv444p',
+                                  core_mp4 + '.part.mp4'], stdin=subprocess.PIPE)
+
     brf = {}
     fi = 0
     whip = motion.get('whip_dur', 0.2)
     for p in parts:
+        if reuse and fi >= reuse[0]:
+            break
         n = int(round((p['b'] - p['a']) * fps))
         cx, cy = face_centre(src(p['clip']), p['a'] + 0.3)
         for frame in frames(src(p['clip']), p['a'], n, fps):
+            if reuse and fi >= reuse[0]:
+                break
             t = fi / fps
             img = zoom(frame, zf[fi], cx, cy)
             for b in broll:
@@ -626,15 +702,32 @@ def main():
                         img = motion_blur(slid, speed)
                     else:
                         img = bimg
+                elif t >= b['t1'] and id(b) in brf:
+                    brf.pop(id(b)).close()      # stop its decoder now so it doesn't sit in memory
             for c in cards:
                 if c['t0'] <= t < c['t1']:
                     paste(img, c['sprite'], W * c.get('x', 0.5), H * c.get('y', 0.2), pop_scale(t - c['t0'], c['dur']))
             if hook_sp is not None and t < hook_end:
                 paste(img, hook_sp, W / 2, style['hook']['y'] + hook_sp.shape[0] / 2,
                       pop_scale(t - 0.03, hook_end - 0.03) if t >= 0.03 else 0)
-            enc.stdin.write(np.ascontiguousarray(img).tobytes())
+            buf = np.ascontiguousarray(img).tobytes()
+            enc.stdin.write(buf)
+            if cache and fi >= core_f0:
+                cache.stdin.write(buf)
             fi += 1
+    for g in brf.values():
+        g.close()
+    if reuse:
+        for frame in frames(core_mp4, reuse[1] / fps, len(keys) - reuse[0], fps):
+            enc.stdin.write(frame.tobytes())
     enc.stdin.close(); enc.wait()
+    if cache:
+        cache.stdin.close(); cache.wait()
+        if cache.returncode == 0:
+            if os.path.exists(core_json):
+                os.remove(core_json)
+            os.replace(core_mp4 + '.part.mp4', core_mp4)
+            json.dump(keys[core_f0:], open(core_json, 'w'))
     json.dump({'segments': [{'say': s['say'], 'start': s['_start'], 'end': s['_end']} for s in segs],
                'words': cap_words, 'total': total, 'cuts': len(parts), 'shots': len(shots),
                'parts': [{k: p[k] for k in ('clip', 'a', 'b', 'at', 'seg')} for p in parts],
