@@ -19,6 +19,7 @@ re-listens to its own edit and fixes what it finds before you see it.
 SKILL.md                      the edit, step by step (Claude reads this)
 references/editing-playbook.md   the craft: structure, takes, pacing, zooms, text, hooks
 references/edit-plan.md       the edit plan format
+references/review-page.html   the review page: the creator leaves timed notes on the drafts
 styles/house.json             the default look (captions, hook box, motion, pacing)
 scripts/setup.sh              installs and checks everything
 scripts/sort.py               sorts Raw files: talking clips, B-roll, photos, music, brief

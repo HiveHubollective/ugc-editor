@@ -10,7 +10,8 @@ finished ads they can upload. Work through the steps in order and don't skip the
 checks: the creator is trusting you to catch the stumbles, the dead air and the
 claims that would get the ad rejected.
 
-Python for every script: `~/.ugc-editor/venv/bin/python` (written `PY` below).
+Run every script with `nice -n 10 ~/.ugc-editor/venv/bin/python` (written `PY` below):
+`nice` lets the Mac keep up with everything else while it renders.
 Scripts live in this skill's `scripts/` folder (written `S` below).
 
 ## Your rules
@@ -48,7 +49,9 @@ session's computer is wiped when it ends.
 
 ## 0. Setup check (first time, or if anything errors)
 Run `bash S/setup.sh`. It installs what's missing and ends with READY or NOT READY.
-Don't edit until it says READY.
+Don't edit until it says READY. If it says LOW-MEMORY MODE (8 GB or less), follow
+"One heavy job at a time" in step 4 strictly, and tell the creator to close CapCut,
+Photos and spare browser tabs while you edit.
 
 ## 1. The job folder
 All jobs live in `~/Desktop/UGC Jobs/`, one folder per brand. If the creator says
@@ -109,6 +112,13 @@ Read `references/editing-playbook.md` (the craft), the creator's rules file, and
   hook text. Never invent words the creator didn't say.
 
 ## 4. Build, listen, look, fix
+**One heavy job at a time.** Rendering (build.py), transcribing, qa.py and any
+cut-out or segmentation step each use a lot of memory. Run them one after another and
+wait for each to finish: never two builds at once, never a build running in the
+background while you start another heavy step, never parallel agents rendering. On an
+8 GB Mac two at once is enough to crash Claude and lose the session. To check the
+Mac: `sysctl -n hw.memsize` (8589934592 or less is 8 GB).
+
 ```
 PY S/build.py <job> --preview          fast draft (saved in .work)
 PY S/qa.py <job>/.work/<name>_preview.mp4 --learn
@@ -128,8 +138,13 @@ Fix the plan and rebuild until qa.py says PASS (one leftover pause under 0.4s is
 If a word keeps coming back missing, use a different take or end the segment earlier.
 
 ## 5. Final renders
-`PY S/build.py <job>` for the main edit, then `--variant <name>` for each hook. Run
-qa.py on each. Finished files are in `<job>/Finished videos/`.
+`PY S/build.py <job>` for the main edit first. It also saves the core (everything
+after the hook) in `.work/core/`. Then `--variant <name>` for each hook, strictly one
+at a time: build it, run qa.py on it, then start the next. Each variant reuses the saved
+core, so only its new hook is rendered (it prints "reusing 24.1s of the main edit's
+core"). If you change anything after the hook, build the main edit again before the
+variants, or each one renders the changed part again (correct, just slower). `--fresh`
+renders a variant in full. Finished files are in `<job>/Finished videos/`.
 
 If the creator wants to finish the edit in CapCut themselves (their own captions,
 text or music), add `--clean`: the same cut, zooms and B-roll with no captions, hook
@@ -140,6 +155,37 @@ Tell the creator, briefly:
 - the files and which hook each one opens with
 - what you cut or changed from the brief and why (claims, takes you skipped)
 - what to check by ear (names, brand words, the joins), because you can't hear tone
+
+**Review page (optional).** Notes are quicker on the video than in chat. If you have
+the Artifact tool, publish a private review page each round:
+1. Make a small copy of each version for the page, one at a time, into
+   `<job>/.work/review/`, named `<id>-r<round>.mp4` (`<id>` is `main` or the variant name):
+   `nice -n 10 ffmpeg -y -i "<video>" -vf scale=720:-2 -c:v libx264 -crf 28 -preset veryfast -c:a aac -b:a 96k -movflags +faststart "<copy>"`.
+   Each must be under 15 MB (use `-crf 32` if one isn't).
+2. Copy `references/review-page.html` to `<job>/.work/review/review.html`. Set its
+   `<title>` to "<Brand> ad review" and fill in the `review-config` block: the brand,
+   the round, and one entry per version (`id`, a `label` in the creator's words like
+   "Hook 2: makeup", and `src`, the copy's file name).
+3. Publish it with the Artifact tool: `file_path` the review.html, `files` mapping each
+   copy's file name to its path, `capabilities: {"db": {}}`, icon `video`. Give the
+   creator the link: "Play each version with sound on, pause where something's off, pick
+   Cut, B-roll, Caption or Other and write a note. Tell me when you're done."
+4. When they're done, read the notes: ArtifactData `list` on the `notes` collection
+   (each has `video`, `t` in seconds, `type`, `text`, `status`, `round`). Fix every open
+   note, rebuild and check it as in steps 4 and 5.
+5. Mark each one: ArtifactData `update` on collection `notes`, the note's id, with its
+   `version` from the list as `if_version` and `{"status": "fixed", "fix": "<what you
+   changed, in plain words>", "fixed_round": <the new round>}`. If you can't
+   fix one (the footage doesn't have it), leave it open and put why in `fix`.
+6. Make the next round: new copies named `-r<round>`, raise `round` and each `src` in
+   review.html, and publish the same file again (same `file_path` in this chat; in a new
+   chat, pass the page's `url`). In `files`, add the new copies and set the old ones to
+   `null`. The notes stay on the page with what you changed, so the creator checks the fixes.
+
+No Artifact tool, or the page says notes can't be saved? Do it in chat: ask for notes
+as a time and what to change ("Hook 2, 0:12, cut the pause before 'honestly'"), and
+after each round reply with the same list, each marked fixed with what you changed.
+
 Then take their notes ("swap the hook take", "B-roll too early", "cut that line") and
 rebuild. After each fix, ask: "Want me to add that to my rules so it doesn't happen
 again?" If yes (or it's the second time they've said it), add it to `My editing rules.md` (see
@@ -156,3 +202,4 @@ starts from the improved rules.
 | Pop sounds, cartoon animations, effects nobody asked for | Clean cuts, zooms and whips; sound effects only on request |
 | Cutting an um that runs straight into the next word | Leave it: cut between phrases, never inside one |
 | Showing the creator a video you haven't QA'd | Build → qa --learn → build → qa → look at the sheets |
+| Two renders at once, or one left running in the background | One heavy job at a time: wait for each to finish |

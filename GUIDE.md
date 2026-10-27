@@ -8,6 +8,8 @@ finished, captioned ad plus 3-5 hook variations.
 ## 1. Get Claude on your desktop
 - You need a **Mac** and a **paid Claude plan** (Pro or Max).
 - Download the app from **claude.ai/download**, open it and sign in.
+- An 8 GB Mac works. Claude builds one video at a time on it, so close CapCut and
+  spare browser tabs while it edits.
 - Click the **Code** tab. Above the message box, set **Environment** to **Local**
   (not Cloud), and pick your **Desktop** as the folder.
 
@@ -55,6 +57,12 @@ Files are in. Here's the website: [link]. Edit it with 4 hook variations.
 Then watch every version with sound on and ask for changes in normal words:
 "use a different take for the hook", "cut the line about X", "the B-roll comes in
 too early", "make clean versions too" (no captions or text, to finish in CapCut).
+
+Claude may send you a **review page** link instead. Play each version there, pause
+where something's off, pick what kind of fix it needs (Cut, B-roll, Caption, Other) and
+type a note. Say "done" in the chat when you've been through them all. Claude fixes
+them, marks each note fixed with what it changed, and puts the next round on the same
+page. The page is private to you.
 
 When Claude fixes something, it asks if it should add it to its rules. Say yes:
 that's how it learns your taste, so the next edit needs fewer notes. Your rules are

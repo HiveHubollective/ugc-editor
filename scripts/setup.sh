@@ -66,6 +66,19 @@ PY
 FREE_GB=$(df -Pk "$HOME" | awk 'NR==2{print int($4/1048576)}')
 [ "$FREE_GB" -ge 10 ] && ok "${FREE_GB} GB free disk" || no "only ${FREE_GB} GB free" "free up at least 10 GB"
 
+# Memory: 8 GB is enough, but only for one heavy job at a time (SKILL.md, low-memory mode)
+if [ "$OS" = "Darwin" ]; then
+  MEM_GB=$(( $(sysctl -n hw.memsize) / 1073741824 ))
+else
+  MEM_GB=$(awk '/MemTotal/{print int($2/1048576 + 0.5)}' /proc/meminfo)
+fi
+if [ "$MEM_GB" -le 8 ]; then
+  printf '  ⚠️  %s GB memory: LOW-MEMORY MODE. Claude builds one video at a time.\n' "$MEM_GB"
+  printf '     Close CapCut, Photos and spare browser tabs while it edits.\n'
+else
+  ok "${MEM_GB} GB memory"
+fi
+
 if [ "$FAIL" = 0 ]; then
   mkdir -p "$HOME/Desktop/UGC Jobs" 2>/dev/null
   RULES="$HOME/Desktop/UGC Jobs/My editing rules.md"
